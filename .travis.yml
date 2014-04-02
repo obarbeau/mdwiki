@@ -6,7 +6,12 @@ node_js:
   - 0.8
 before_script:
   - npm install -g grunt-cli
+  - npm install -g typescript@0.9.1-1
+  - npm install -g tsd
+  - npm install -g bower@1.3.1
+  - tsd install jquery
+  - bower install
 script:
-  - grunt release-fat release-slim release-debug
+  - grunt release debug
 
 after_success: ./upload-build.sh
