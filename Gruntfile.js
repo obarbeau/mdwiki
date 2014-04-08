@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             'js/gimmicks/forkmeongithub.js',
             'js/gimmicks/gist.js',
             'js/gimmicks/googlemaps.js',
-            // 'js/gimmicks/highlight.js',
+            //'js/gimmicks/highlight.js',
             'js/gimmicks/iframe.js',
             'js/gimmicks/math.js',
             // // 'js/gimmicks/leaflet.js',
@@ -55,8 +55,10 @@ module.exports = function(grunt) {
 
         // REMEMBER: ORDER OF FILES IS IMPORTANT
         cssFiles: [
-            'bower_components/bootstrap/dist/css/bootstrap.min.css',
-            'extlib/css/colorbox.css',
+            '/home/olivier/dev/linux/specific-config/common/bootstrap-cerulean-3.1.1.css',
+            '/home/olivier/dev/linux/specific-config/common/bootstrap-upgrade.css',
+            'extlib/css/colorbox.css'
+            /*,'extlib/css/highlight.github.css'*/
         ],
         jsFiles: [
             'bower_components/jquery/jquery.min.js',
