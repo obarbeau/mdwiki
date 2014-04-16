@@ -45,36 +45,41 @@ module.exports = function(grunt) {
             'js/gimmicks/forkmeongithub.js',
             'js/gimmicks/gist.js',
             'js/gimmicks/googlemaps.js',
-            //'js/gimmicks/highlight.js',
             'js/gimmicks/iframe.js',
+            'js/gimmicks/prism.js',
             'js/gimmicks/math.js',
             // // 'js/gimmicks/leaflet.js',
             'js/gimmicks/twitter.js',
             'js/gimmicks/youtube_embed.js'
         ],
 
-        // REMEMBER: ORDER OF FILES IS IMPORTANT
+        // REMEMBER:
+        // * ORDER OF FILES IS IMPORTANT
+        // * ALWAYS ADD EACH FILE TO BOTH minified/unminified SECTIONS!
         cssFiles: [
             '/home/olivier/dev/linux/specific-config/common/bootstrap-cerulean-3.1.1.css',
             '/home/olivier/dev/linux/specific-config/common/bootstrap-upgrade.css',
-            'extlib/css/colorbox.css'
-            /*,'extlib/css/highlight.github.css'*/
+            'extlib/css/prism.default.css',
+            'extlib/css/colorbox.css',
         ],
         jsFiles: [
             'bower_components/jquery/jquery.min.js',
             'extlib/js/jquery.colorbox.min.js',
+            'extlib/js/prism.js',
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js'
         ],
         // for debug builds use unminified versions:
         unminifiedCssFiles: [
             'bower_components/bootstrap/dist/css/bootstrap.css',
-            'extlib/css/colorbox.css'
+            'extlib/css/colorbox.css',
+            'extlib/css/prism.default.css',
         ],
         unminifiedJsFiles: [
             'bower_components/jquery/jquery.js',
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js',
+            'extlib/js/prism.js',
             'extlib/js/jquery.colorbox.js'
         ],
 
@@ -146,6 +151,7 @@ module.exports = function(grunt) {
                     L: true,
                     console: true,
                     MDwiki: true,
+                    Prism: true,
                     alert: true
                 }
             },
@@ -195,7 +201,7 @@ module.exports = function(grunt) {
                 'js/ts/**/*.ts',
                 'index.tmpl'
             ],
-            tasks: ['devel']
+            tasks: ['debug','reload' ]
         },
         reload: {
             port: 35729,
@@ -224,7 +230,7 @@ module.exports = function(grunt) {
     });
     grunt.registerTask('debug', [ 'jshint', 'typescript', 'concat:dev', 'index_debug' ]);
 
-    grunt.registerTask('devel', [ 'debug', 'reload', 'watch' ]);
+    grunt.registerTask('devel', [ 'reload', 'watch' ]);
 
     grunt.registerTask('distrelease',[
         'release', 'debug',
