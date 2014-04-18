@@ -15,6 +15,9 @@ module.exports = function(grunt) {
     'use strict';
     // Project configuration.
 
+    // load all grunt tasks matching the `grunt-*` pattern
+    require('load-grunt-tasks')(grunt);
+
     grunt.initConfig({
     // Metadata.
         pkg: {
@@ -46,7 +49,7 @@ module.exports = function(grunt) {
             'js/gimmicks/gist.js',
             'js/gimmicks/googlemaps.js',
             'js/gimmicks/iframe.js',
-            //'js/gimmicks/prism.js',
+            'js/gimmicks/prism.js',
             'js/gimmicks/math.js',
             // // 'js/gimmicks/leaflet.js',
             'js/gimmicks/twitter.js',
@@ -71,7 +74,7 @@ module.exports = function(grunt) {
         ],
         // for debug builds use unminified versions:
         unminifiedCssFiles: [
-            'bower_components/bootstrap/dist/css/bootstrap.css',
+            'tmp/bootstrap.css',
             'extlib/css/colorbox.css',
             'extlib/css/prism.default.css',
         ],
@@ -98,6 +101,25 @@ module.exports = function(grunt) {
             }
         },
 
+        less: {
+            min: {
+                options: {
+                    compress: true,
+                },
+                files: {
+                    'tmp/bootstrap.min.css': 'extlib/less/bootstrap.less',
+                },
+            },
+            dev: {
+                options: {
+                    compress: false,
+                },
+                files: {
+                    'tmp/bootstrap.css': 'extlib/less/bootstrap.less',
+                },
+            },
+        },
+
         concat: {
             options: {
                 //banner: '<%= banner %>',
@@ -105,7 +127,7 @@ module.exports = function(grunt) {
             },
             dev: {
                 src: '<%= ownJsFiles %>',
-                dest: 'dist/<%= pkg.name %>.js'
+                dest: 'tmp/<%= pkg.name %>.js'
             }
         },
         uglify: {
@@ -114,7 +136,7 @@ module.exports = function(grunt) {
             },
             dist: {
                 src: '<%= concat.dev.dest %>',
-                dest: 'dist/<%= pkg.name %>.min.js'
+                dest: 'tmp/<%= pkg.name %>.min.js'
             }
         },
         index: {
@@ -209,26 +231,16 @@ module.exports = function(grunt) {
         }
     });
 
-    // These plugins provide necessary tasks.
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-typescript');
-    grunt.loadNpmTasks('grunt-shell');
-    grunt.loadNpmTasks('grunt-reload');
-
     grunt.registerTask('index', 'Generate mdwiki.html, inline all scripts', function() {
         createIndex(grunt, 'release');
     });
-    grunt.registerTask('release', [ 'jshint', 'typescript', 'concat:dev', 'uglify:dist', 'index' ]);
+    grunt.registerTask('release', [ 'jshint', 'typescript', 'less:min', 'concat:dev', 'uglify:dist', 'index' ]);
 
     /* Debug is basically the releaes version but without any minifing */
     grunt.registerTask('index_debug', 'Generate mdwiki-debug.html, inline all scripts unminified', function() {
         createIndex(grunt, 'debug');
     });
-    grunt.registerTask('debug', [ 'jshint', 'typescript', 'concat:dev', 'index_debug' ]);
+    grunt.registerTask('debug', [ 'jshint', 'typescript', 'less:dev', 'concat:dev', 'index_debug' ]);
 
     grunt.registerTask('devel', [ 'reload', 'watch' ]);
 
