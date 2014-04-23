@@ -69,6 +69,7 @@ module.exports = function(grunt) {
             'bower_components/jquery/jquery.min.js',
             'extlib/js/jquery.colorbox.min.js',
             'extlib/js/prism.js',
+            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js',
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js'
         ],
