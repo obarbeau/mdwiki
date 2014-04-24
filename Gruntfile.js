@@ -60,19 +60,15 @@ module.exports = function(grunt) {
         // * ORDER OF FILES IS IMPORTANT
         // * ALWAYS ADD EACH FILE TO BOTH minified/unminified SECTIONS!
         cssFiles: [
-            //'/home/olivier/dev/linux/specific-config/common/bootstrap-cerulean-3.1.1.css',
-            //'/home/olivier/dev/linux/specific-config/common/bootstrap-upgrade.css',
-            //'extlib/css/prism.default.css',
-            //'extlib/css/colorbox.css',
             'tmp/main.min.css'
         ],
         jsFiles: [
             'bower_components/jquery/jquery.min.js',
             'extlib/js/jquery.colorbox.min.js',
             'extlib/js/prism.js',
-            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js',
             'bower_components/bootstrap/js/affix.js',
-            'bower_components/bootstrap/js/dropdown.js'
+            'bower_components/bootstrap/js/dropdown.js',
+            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js'
         ],
         // for debug builds use unminified versions:
         unminifiedCssFiles: [
@@ -83,7 +79,8 @@ module.exports = function(grunt) {
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js',
             'extlib/js/prism.js',
-            'extlib/js/jquery.colorbox.js'
+            'extlib/js/jquery.colorbox.js',
+            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js'
         ],
 
         typescript: {
