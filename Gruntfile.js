@@ -60,10 +60,11 @@ module.exports = function(grunt) {
         // * ORDER OF FILES IS IMPORTANT
         // * ALWAYS ADD EACH FILE TO BOTH minified/unminified SECTIONS!
         cssFiles: [
-            '/home/olivier/dev/linux/specific-config/common/bootstrap-cerulean-3.1.1.css',
-            '/home/olivier/dev/linux/specific-config/common/bootstrap-upgrade.css',
-            'extlib/css/prism.default.css',
-            'extlib/css/colorbox.css',
+            //'/home/olivier/dev/linux/specific-config/common/bootstrap-cerulean-3.1.1.css',
+            //'/home/olivier/dev/linux/specific-config/common/bootstrap-upgrade.css',
+            //'extlib/css/prism.default.css',
+            //'extlib/css/colorbox.css',
+            'tmp/main.min.css'
         ],
         jsFiles: [
             'bower_components/jquery/jquery.min.js',
@@ -75,9 +76,7 @@ module.exports = function(grunt) {
         ],
         // for debug builds use unminified versions:
         unminifiedCssFiles: [
-            'tmp/bootstrap.css',
-            'extlib/css/colorbox.css',
-            'extlib/css/prism.default.css',
+            'tmp/main.css'
         ],
         unminifiedJsFiles: [
             'bower_components/jquery/jquery.js',
@@ -108,7 +107,7 @@ module.exports = function(grunt) {
                     compress: true,
                 },
                 files: {
-                    'tmp/bootstrap.min.css': 'extlib/less/bootstrap.less',
+                    'tmp/main.min.css': 'styles/main.less',
                 },
             },
             dev: {
@@ -116,7 +115,7 @@ module.exports = function(grunt) {
                     compress: false,
                 },
                 files: {
-                    'tmp/bootstrap.css': 'extlib/less/bootstrap.less',
+                    'tmp/main.css': 'styles/main.less',
                 },
             },
         },
