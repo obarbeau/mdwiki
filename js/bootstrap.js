@@ -267,7 +267,8 @@
 
     function createPageContentMenu () {
         // assemble the menu
-        var $headings = $('#md-content').find($.md.config.pageMenu.useHeadings);
+        // oba on prend tous les titres var $headings = $('#md-content').find($.md.config.pageMenu.useHeadings);
+        var $headings = $('#md-content').find("[class=md-inpage-anchor]");
 
         $headings.children().remove();
 
@@ -340,6 +341,8 @@
             $a.text($heading.toptext());
             return $a;
         }
+
+      console.log($headings); /* oba */
 
         $($headings).each(function(i,e) {
             var hClass = $(e).prop('tagName');
