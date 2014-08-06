@@ -312,14 +312,16 @@
 
 
         var affixDiv = $('<div id="md-page-menu" />');
-
+        var wrapperDiv = $('<div id="md-page-menu-wrapper" />'); // oba
         //var top_spacing = $('#md-menu').height() + 15;
-        var top_spacing = 70;
+        var top_spacing = 170; /* oba 70;*/
         affixDiv.affix({
             //offset: affix.position() - 50,
             offset: 130
         });
-        affixDiv.css('top', top_spacing);
+        //oba affixDiv.css('top', top_spacing);
+        wrapperDiv.css('top', top_spacing);
+        wrapperDiv.css('width', '213');
         //affix.css('top','-250px');
 
         var $pannel = $('<div class="panel panel-default"><ul class="list-group"/></div>');
@@ -362,8 +364,9 @@
         });
 
         //menu.css('width','100%');
-        $('#md-left-column').append(affixDiv);
-
+        // oba $('#md-left-column').append(affixDiv);
+        wrapperDiv.append(affixDiv);
+        $('#md-left-column').append(wrapperDiv);
     }
 
     function createPageSkeleton() {
