@@ -285,7 +285,7 @@
             // <md-left-column> anymore and therefore does not inherit
             // its width. On every resize, change the class accordingly
             var width_left_column = $('#md-left-column').css('width');
-            $('#md-page-menu').css('width', width_left_column);
+            // oba fixé à 21%, sinon la barre de défilement bugge $('#md-page-menu').css('width', width_left_column);
         };
 
         $(window).scroll(function() {
@@ -314,14 +314,15 @@
         var affixDiv = $('<div id="md-page-menu" />');
         var wrapperDiv = $('<div id="md-page-menu-wrapper" />'); // oba
         //var top_spacing = $('#md-menu').height() + 15;
-        var top_spacing = 170; /* oba 70;*/
+        // oba var top_spacing = 70;*/
         affixDiv.affix({
             //offset: affix.position() - 50,
             offset: 130
         });
         //oba affixDiv.css('top', top_spacing);
-        wrapperDiv.css('top', top_spacing);
-        wrapperDiv.css('width', '213');
+        // width et top mis avec la css custom
+        // wrapperDiv.css('top', top_spacing);
+        // wrapperDiv.css('width', '213');
         //affix.css('top','-250px');
 
         var $pannel = $('<div class="panel panel-default"><ul class="list-group"/></div>');
