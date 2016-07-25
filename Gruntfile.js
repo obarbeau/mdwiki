@@ -3,6 +3,8 @@ var createIndex = function (grunt, taskname) {
     var conf = grunt.config('index')[taskname],
         tmpl = grunt.file.read(conf.template);
 
+    grunt.config.set('templatesString', '');
+
     // register the task name in global scope so we can access it in the .tmpl file
     grunt.config.set('currentTask', {name: taskname});
 
@@ -28,18 +30,19 @@ module.exports = function(grunt) {
         ownJsFiles: [
             'js/marked.js',
             'js/init.js',
-            'js/logging.js',
-            'js/modules.js',
             'ts_compiled/mdwiki_ts.js',
+            'tmp/MDwiki.templates.js',
             'js/main.js',
-            'js/stage.js',
             'js/util.js',
             'js/basic_skeleton.js',
             'js/bootstrap.js',
-            'js/gimmicker.js',
 
             // gimmicks
-            'js/gimmicks/alerts.js',
+            'js/gimmicks/templating.js',
+            'js/gimmicks/prism.js',
+            /*
+             'js/gimmicks/googlemaps.js',
+             'js/gimmicks/alerts.js',
             'js/gimmicks/colorbox.js',
             // 'js/gimmicks/carousel.js',
             'js/gimmicks/disqus.js',
@@ -47,14 +50,13 @@ module.exports = function(grunt) {
             'js/gimmicks/facebooklike.js',
             'js/gimmicks/forkmeongithub.js',
             'js/gimmicks/gist.js',
-            'js/gimmicks/googlemaps.js',
             'js/gimmicks/iframe.js',
-            'js/gimmicks/prism.js',
             'js/gimmicks/math.js',
             // 'js/gimmicks/leaflet.js',
             'js/gimmicks/twitter.js',
             'js/gimmicks/youtube_embed.js',
             'js/gimmicks/yuml.js'
+            */
         ],
 
         // REMEMBER:
@@ -65,6 +67,7 @@ module.exports = function(grunt) {
         ],
         jsFiles: [
             'bower_components/jquery/jquery.min.js',
+            'node_modules/handlebars/dist/handlebars.runtime.min.js',
             'extlib/js/jquery.colorbox.min.js',
             'extlib/js/prism.js',
             'bower_components/bootstrap/js/affix.js',
@@ -79,23 +82,16 @@ module.exports = function(grunt) {
             'bower_components/jquery/jquery.js',
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js',
+            'node_modules/handlebars/dist/handlebars.runtime.js',
             'extlib/js/prism.js',
             'extlib/js/jquery.colorbox.js',
             '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js'
         ],
 
-        typescript: {
+        ts: {
+            // TOD: use tsconfig.json as soon as tsconfig.json supports globs/wildcards
             base: {
-                src: ['js/ts/**/*.ts'],
-                dest: 'ts_compiled/mdwiki_ts.js',
-                options: {
-                    //module: 'amd', //or commonjs
-                    target: 'es5', //or es3
-                    basePath: '/js/ts/',
-                    sourcemap: false,
-                    fullSourceMapPath: false,
-                    declaration: false,
-                }
+                tsconfig: "js/ts/tsconfig.json"
             }
         },
 
@@ -147,41 +143,6 @@ module.exports = function(grunt) {
                 dest: 'dist/mdwiki-debug.html'
             }
         },
-        /* make it use .jshintrc */
-        jshint: {
-            options: {
-                curly: false,
-                eqeqeq: true,
-                immed: true,
-                latedef: true,
-                newcap: true,
-                noarg: true,
-                sub: true,
-                undef: true,
-                unused: false,
-                boss: true,
-                eqnull: true,
-                browser: true,
-                globals: {
-                    jQuery: true,
-                    marked: true,
-                    google: true,
-                    hljs: true,
-                    /* leaflet.js*/
-                    L: true,
-                    console: true,
-                    MDwiki: true,
-                    Prism: true,
-                    alert: true
-                }
-            },
-            /*gruntfile: {
-                src: 'Gruntfile.js'
-            },*/
-            js: {
-                src: ['js/*.js', 'js/**/*.js', '!js/marked.js']
-            }
-        },
         lib_test: {
             src: ['lib/**/*.js', 'test/**/*.js']
         },
@@ -203,6 +164,20 @@ module.exports = function(grunt) {
                 flatten: true,
                 src: [ 'release_templates/*' ],
                 dest: 'release/mdwiki-<%= grunt.config("pkg").version %>/'
+            },
+            unittests: {
+                files: [{
+                    expand: true,
+                    flatten: true,
+                    src: 'tmp/MDwiki.js',
+                    dest: 'unittests/lib/'
+                },
+                {
+                    expand: true,
+                    flatten: true,
+                    src: 'bower_components/jquery/jquery.min.js',
+                    dest: 'unittests/lib/'
+                }]
             }
         },
         shell: {
@@ -211,6 +186,17 @@ module.exports = function(grunt) {
                     stdout: true
                 },
                 command: 'cd release && zip -r mdwiki-<%= grunt.config("pkg").version %>.zip mdwiki-<%= grunt.config("pkg").version %>'
+            },
+            /* precompilation of our handlebars templates */
+            compile_templates: {
+                options: {
+                    stdout: true
+                },
+                // -n mdwiki = Namespace is mdwiki
+                // -f outputfile
+                // -r root for the templates (will mirror the FS structure to the template name)
+                // -m = minify
+                command: './node_modules/.bin/handlebars -f tmp/MDwiki.templates.js -r templates -m templates/**/*.html'
             }
         },
         watch: {
@@ -219,6 +205,10 @@ module.exports = function(grunt) {
                 'js/*.js',
                 'js/**/*.js',
                 'js/ts/**/*.ts',
+                'js/**/*.tsx',
+                'unittests/**/*.js',
+                'unittests/**/*.html',
+                'templates/**/*.html',
                 'index.tmpl'
             ],
             tasks: ['debug','reload' ]
@@ -229,30 +219,45 @@ module.exports = function(grunt) {
         },
         'http-server': {
             'dev': {
-                root:'dist/',
-                port: 1026,
-                host: "127.0.0.1",
+                root:'./',
+                port: 8080,
+                host: "0.0.0.0",
                 cache: 1,
                 showDir : true,
                 autoIndex: true,
                 defaultExt: "html",
-                runInBackground: true
+                runInBackground: false
             }
         }
     });
 
+    /*** CUSTOM CODED TASKS ***/
     grunt.registerTask('index', 'Generate mdwiki.html, inline all scripts', function() {
         createIndex(grunt, 'release');
     });
-    grunt.registerTask('release', [ 'jshint', 'typescript', 'less:min', 'concat:dev', 'uglify:dist', 'index' ]);
 
     /* Debug is basically the releaes version but without any minifing */
     grunt.registerTask('index_debug', 'Generate mdwiki-debug.html, inline all scripts unminified', function() {
         createIndex(grunt, 'debug');
     });
-    grunt.registerTask('debug', [ 'jshint', 'typescript', 'less:dev', 'concat:dev', 'index_debug' ]);
 
-    grunt.registerTask('devel', [ 'debug', 'server', 'reload', 'watch' ]);
+    /*grunt.registerTask('assembleTemplates', 'Adds a script tag with id to each template', function() {
+        var templateString = '';
+        grunt.file.recurse('templates/', function(abspath, rootdir, subdir, filename){
+            var intro = '<script type="text/html" id="/' + rootdir.replace('/','') + '/' + subdir.replace('/','') + '/' + filename.replace('.html','') + '">\n';
+            var content = grunt.file.read(abspath);
+            var outro = '</script>\n';
+            templateString += intro + content + outro;
+        });
+        grunt.file.write('tmp/templates.html', templateString);
+    });*/
+
+
+    /*** NAMED TASKS ***/
+    grunt.registerTask('release', [ 'ts', 'less:min', 'shell:compile_templates', 'concat:dev', 'uglify:dist', 'index' ]);
+    grunt.registerTask('debug', [ 'ts', 'less:dev', 'shell:compile_templates', 'concat:dev',  'index_debug' ]);
+    grunt.registerTask('devel', [ 'debug', 'server', 'unittests', 'reload', 'watch' ]);
+    grunt.registerTask('unittests', [ 'copy:unittests' ]);
 
     grunt.registerTask('server', [ 'http-server:dev' ]);
 
@@ -262,5 +267,5 @@ module.exports = function(grunt) {
         'shell:zip_release'
     ]);
     // Default task
-    grunt.registerTask('default', [ 'release', 'debug' ] );
+    grunt.registerTask('default', [ 'release', 'debug', 'unittests' ] );
 };

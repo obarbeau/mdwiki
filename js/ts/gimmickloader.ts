@@ -1,59 +1,101 @@
 interface JQueryStatic {
     md: any;
-    mdbootstrap: any;
     toptext: () => string;
+    affix: (any) => any;
 }
 
 interface String {
     startsWith: (x: any) => any;
+    endsWith: (x: any) => any;
 }
 
-module MDwiki.Core {
-    export class ScriptResource {
-        constructor (
-            public url: string,
-            public loadstage: string = 'skel_ready',
-            public finishstage: string = 'gimmick'
-        ) { }
-    }
+module MDwiki.Gimmick {
 
-    export class CssResource {
-        constructor (
-            public url: string,
-            public finishstage: string = 'gimmick'
-        ) { }
+    export interface IMultilineGimmickHandler {
+        (trigger: string, content: string, options: any, domElement: any): void;
     }
-
-    export interface IGimmickCallback {
-        ($links: any, options: any, trigger: string): void;
+    export interface ISinglelineGimmickCallback {
+        (trigger: string, content: string, options: any, domElement: any): void;
     }
-
-    // [gimmick:trigger({option1: value1, option2:value2})](href)
-    class GimmickLinkParts {
-        constructor (
-            public trigger:string,
-            public options: any,
-            public href: string
-        ) { }
+    export interface ILinkGimmickHandler {
+        (trigger: string, text: string, options: any, domElement:any)
     }
 
     export class GimmickHandler {
-        constructor(
-            public trigger: string,
-            public handler: IGimmickCallback,
-            public loadstage: string = 'gimmick'
-        ) {}
+        callback: Function;
+        loadStage: string = 'gimmick';
+        kind: string = 'link';
+        trigger: string;
+
+        // reference to the gimmick the handler belongs,
+        public get gimmick (): Gimmick {
+            return this.gimmickReference;
+        }
+        gimmickReference: Gimmick;
+
+        constructor(kind?: string, callback?: Function) {
+            if (kind)
+                this.kind = kind;
+            if (callback)
+                this.callback = callback;
+        }
+    }
+    export class ScriptResource {
+        constructor (
+            public url: string,
+            public loadstage: string = 'pregimmick',
+            public finishstage: string = 'gimmick'
+        ) { }
     }
 
+    export class Gimmick {
+        name: string;
+        handlers: GimmickHandler[] = [];
+        // set by the gimmickloader when registering a gimmick
+        stages: StageChain;
 
-    export class Module {
-        init() { }
+        private initFunctions = $.Callbacks();
 
-        private registerScriptResource (res: ScriptResource) {
+        // should be called by the implementor to register init functions
+        initFunction (initFn: Function) {
+            this.initFunctions.add(initFn);
+        }
+
+        // should only be called internall by MDwiki to trigger initialization
+        init(stageLoader) {
+            this.initFunctions.fire(stageLoader);
+        }
+
+        // TODO create a test passing of 2nd paramter
+        constructor(name: string, handler?: GimmickHandler) {
+            if (arguments.length == 0) {
+                throw "name argument is required for the Gimmick constructor";
+            }
+            this.name = name;
+
+            if (handler)
+                this.addHandler(handler);
+        }
+        addHandler(handler: GimmickHandler) {
+            if (!handler.trigger)
+                handler.trigger = this.name;
+
+            handler.gimmickReference = this;
+            this.handlers.push(handler);
+        }
+        findHandler(kind: string, trigger: string) {
+            var match = null;
+            this.handlers.forEach(handler => {
+                if (handler.trigger == trigger && handler.kind == kind)
+                    match = handler;
+            });
+            return match;
+        }
+        registerScriptResource (res: ScriptResource) {
             var loadDone = $.Deferred();
 
             // load the script
-            $.md.stage(res.loadstage).subscribe(done => {
+            this.stages.getStage(res.loadstage).subscribe(done => {
                 if (res.url.startsWith('//') || res.url.startsWith('http')) {
                     $.getScript(res.url, () => loadDone.resolve());
                 } else {
@@ -72,146 +114,99 @@ module MDwiki.Core {
             });
 
             // wait for the script to be fully loaded
-            $.md.stage(res.finishstage).subscribe(done => {
+            this.stages.getStage(res.finishstage).subscribe(done => {
                 loadDone.done(() => done());
             });
         }
-        private registerCssResource (resource: CssResource) {
-        }
     }
-
-    export class Gimmick extends Module {
-        // property with public get and private set
-        Handlers: GimmickHandler[] = [];
-        // only gets called if any of the gimmick's trigger are active
-        init () {}
-        addHandler(trigger: string, cb: IGimmickCallback, loadstage: string = 'gimmick') {
-            var handler = new GimmickHandler(trigger, cb, loadstage);
-            this.Handlers.push(handler);
-        }
-    }
-
-    function getGimmickLinkParts($link: any) {
-        var link_text = $.trim($link.toptext());
-        // returns linkTrigger, options, linkText
-        if (link_text.match(/gimmick:/i) === null) {
-            return null;
-        }
-        var href = $.trim($link.attr('href'));
-        var r = /gimmick\s?:\s*([^(\s]*)\s*\(?\s*{?(.*)\s*}?\)?/i;
-        var matches = r.exec(link_text);
-        if (matches === null || matches[1] === undefined) {
-            $.error('Error matching a gimmick: ' + link_text);
-            return null;
-        }
-        var trigger = matches[1].toLowerCase();
-        var args = null;
-        // getting the parameters
-        if (matches[2].toLowerCase().indexOf("gimmick") != 0) {
-            // remove whitespaces
-            var params = $.trim(matches[2].toString());
-            if (params.charAt (params.length - 1) === ')') {
-                params = params.substring(0, params.length - 1);
-            }
-            // remove the closing } if present
-            if (params.charAt (params.length - 1) === '}') {
-                params = params.substring(0, params.length - 1);
-            }
-
-            // add surrounding braces and paranthese
-            params = '({' + params + '})';
-
-            // replace any single quotes by double quotes
-            var replace_quotes = new RegExp ("'", 'g');
-            params = params.replace (replace_quotes, '"');
-            // finally, try if the json object is valid
-            try {
-                /*jshint -W061 */
-                args = eval(params);
-            } catch (err) {
-                $.error('error parsing argument of gimmick: ' + link_text + 'giving error: ' + err);
-            }
-        }
-        return new GimmickLinkParts (trigger, args, href);
-    }
-
 
     export class GimmickLoader {
-        // all available gimmicks
-        private registeredModules: Module[] = [];
-        // all really required (existing on page) gimmicks
-        private requiredGimmicks: string[] = [];
-        private gimmicks: Gimmick[] = [];
+        private globalGimmickRegistry: Gimmick[] = [];
+        private domElement: JQuery;
+        private stages: StageChain;
 
+        constructor (stageChain, domElement?) {
+            this.domElement = domElement || $(document);
+            this.stages = stageChain;
+        }
 
-        constructor() {
+        selectHandler(kind: string, trigger: string): GimmickHandler {
+            var matching_trigger_and_kind = null;
+
+            this.globalGimmickRegistry.forEach(gmck => {
+                var handler = gmck.findHandler(kind, trigger);
+                if (handler != null)
+                    matching_trigger_and_kind = handler;
+            });
+
+            return matching_trigger_and_kind;
         }
-        initModules() {
-            this.registeredModules.map(m => m.init());
+
+        private findGimmick(name: string): Gimmick {
+            var found = this.globalGimmickRegistry.filter(gmck => {
+                return gmck.name == name;
+            });
+            if (found.length == 0)
+                return null;
+            else
+                return found[0];
         }
-        registerModule(mod: Module) {
-           this.registeredModules.push(mod);
-        }
+
         registerGimmick(gmck: Gimmick) {
-           this.gimmicks.push(gmck);
+            var already_registered = this.globalGimmickRegistry.some(g => g.name == gmck.name);
+            if (already_registered)
+                throw "A gimmick by that name is already registered";
+
+            this.globalGimmickRegistry.push(gmck);
         }
 
-        registerBuiltInGimmicks() {
-           var themechooser = new ThemeChooserGimmick();
-           this.registerGimmick(themechooser);
-        }
+        initializeGimmick(name: string, doneCallback: Function) {
+            var gmck = this.findGimmick(name);
 
-        initGimmicks() {
-            this.registerBuiltInGimmicks();
-            var $gimmick_links = $('a:icontains(gimmick:)');
-            $gimmick_links.map((i,e) => {
-                var $link = $(e);
-                var parts = getGimmickLinkParts($link);
-                if (this.requiredGimmicks.indexOf(parts.trigger) < 0)
-                    this.requiredGimmicks.push(parts.trigger);
+            if (gmck == null)
+                return;
+
+            // TODO the callback must be passed down
+            gmck.init(this.stages);
+            doneCallback();
+        }
+        initializeGimmicks(parser: GimmickParser) {
+            parser.singlelineReferences.forEach((ref) => {
+                this.stages.getStage('ready').subscribe(done => {
+                    this.initializeGimmick(ref.trigger, done);
+                });
             });
-            this.requiredGimmicks.map(trigger => {
-                var gmck = this.selectGimmick(trigger);
-                gmck.init();
+            parser.multilineReferences.forEach((ref) => {
+                this.stages.getStage('ready').subscribe(done => {
+                    this.initializeGimmick(ref.trigger, done);
+                });
             });
-        }
-
-        loadGimmicks() {
-            var $gimmick_links = $('a:icontains(gimmick:)');
-            $gimmick_links.map((i,e) => {
-                var $link = $(e);
-                var parts = getGimmickLinkParts($link);
-                var handler = this.selectGimmickHandler(parts.trigger);
-                $.md.stage(handler.loadstage).subscribe(done => {
-                    handler.handler($link, parts.options, $link.attr('href'));
-                    done();
+            parser.linkReferences.forEach((ref) => {
+                this.stages.getStage('ready').subscribe(done => {
+                    this.initializeGimmick(ref.trigger, done);
                 });
             });
         }
-        private selectGimmick(trigger: string) {
-            var gimmicks = this.gimmicks.filter(g => {
-                var triggers = g.Handlers.map(h => h.trigger);
-                if (triggers.indexOf(trigger) >= 0)
-                    return true;
-            });
-            return gimmicks[0];
-        }
-        private selectGimmickHandler(trigger: string) {
-            var gimmick = this.selectGimmick(trigger);
-            var handler = gimmick.Handlers.filter(h => h.trigger == trigger)[0];
-            return handler;
-        }
-        private findActiveLinkTrigger() {
-            // log.debug('Scanning for required gimmick links: ' + JSON.stringify(activeLinkTriggers));
-            var activeLinkTriggers = [];
 
-            var $gimmicks = $('a:icontains(gimmick:)');
-            $gimmicks.each((i,e) => {
-                var parts = getGimmickLinkParts($(e));
-                if (activeLinkTriggers.indexOf(parts.trigger) === -1)
-                    activeLinkTriggers.push(parts.trigger);
+        subscribeGimmickExecution(parser: GimmickParser) {
+            parser.singlelineReferences.forEach(ref => {
+                var handler = this.selectHandler('singleline', ref.trigger);
+                this.stages.getStage(handler.loadStage).subscribe(done => {
+                    handler.callback(ref, done);
+                });
             });
-            return activeLinkTriggers;
+            parser.multilineReferences.forEach(ref => {
+                var handler = this.selectHandler('multiline', ref.trigger);
+                this.stages.getStage(handler.loadStage).subscribe(done => {
+                    handler.callback(ref, done);
+                });
+            });
+            parser.linkReferences.forEach(ref => {
+                var handler = this.selectHandler('link', ref.trigger);
+                this.stages.getStage(handler.loadStage).subscribe(done => {
+                    handler.callback(ref, done);
+                });
+            });
         }
     }
 }
