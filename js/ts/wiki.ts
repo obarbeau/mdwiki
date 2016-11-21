@@ -91,6 +91,12 @@ module MDwiki.Core {
             marked.setOptions(options);
 
             // get sample markdown
+            markdown=markdown.replace(/\[(OK)\](.*)/gi, "<div class=\"$1 fa fa-check-square-o\">&nbsp;$2");
+            markdown=markdown.replace(/\[(hgh)\](.*)/gi, "<div class=\"$1 fa fa-arrow-up\">&nbsp;$2");
+            markdown=markdown.replace(/\[(low)\](.*)/gi, "<div class=\"$1 fa fa-arrow-down\">&nbsp;$2");
+            markdown=markdown.replace(/\[(cxl)\](.*)/gi, "<div class=\"$1 fa fa-ban\">&nbsp;$2");
+            markdown=markdown.replace(/\[(sby)\](.*)/gi, "<div class=\"$1 fa fa-spinner\">&nbsp;$2");
+
             var transformer = new MDwiki.Markdown.Markdown(markdown, options);
             var html = transformer.transform();
             var processor = new MDwiki.Markdown.MarkdownPostprocessing();
