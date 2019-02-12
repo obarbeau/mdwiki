@@ -72,7 +72,8 @@ module.exports = function(grunt) {
             'extlib/js/prism.js',
             'bower_components/bootstrap/js/affix.js',
             'bower_components/bootstrap/js/dropdown.js',
-            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js'
+            '/home/olivier/dev/clj/tools/prism-clojure/prism.clojure.js',
+            '/home/olivier/dev/tools/mdwiki/extlib/js/custom.js',
         ],
         // for debug builds use unminified versions:
         unminifiedCssFiles: [
