@@ -91,15 +91,15 @@ module MDwiki.Core {
             marked.setOptions(options);
 
             // get sample markdown
-            markdown=markdown.replace(/\[(OK)\](.*)/gi, "<div class=\"$1 fa fa-check-square-o\">&nbsp;$2");
-			markdown=markdown.replace(/\[(NOK)\](.*)/gi, "<div class=\"$1 fa fa-thumbs-down\">&nbsp;$2");
-			markdown=markdown.replace(/\[(now)\](.*)/gi, "<div class=\"$1 fa fa-arrow-circle-right\">&nbsp;$2");
-			markdown=markdown.replace(/\[(wrn)\](.*)/gi, "<div class=\"$1 fa fa-warning\">&nbsp;$2");
-			markdown=markdown.replace(/\[(bug)\](.*)/gi, "<div class=\"$1 fa fa-bomb\">&nbsp;$2");
-			markdown=markdown.replace(/\[(hgh)\](.*)/gi, "<div class=\"$1 fa fa-arrow-up\">&nbsp;$2");
-			markdown=markdown.replace(/\[(low)\](.*)/gi, "<div class=\"$1 fa fa-arrow-down\">&nbsp;$2");
-			markdown=markdown.replace(/\[(cxl)\](.*)/gi, "<div class=\"$1 fa fa-ban\">&nbsp;$2");
-			markdown=markdown.replace(/\[(sby)\](.*)/gi, "<div class=\"$1 fa fa-spinner\">&nbsp;$2");
+            markdown=markdown.replace(/\[(OK)\](.*)/gi,  "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-check-square-o\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(NOK)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-thumbs-down\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(now)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-arrow-circle-right\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(wrn)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-warning\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(bug)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-bomb\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(hgh)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-arrow-up\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(low)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-arrow-down\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(cxl)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-ban\">&nbsp;</div><div class=\"text_$1\">$2");
+			markdown=markdown.replace(/\[(sby)\](.*)/gi, "<div class=\"color_$1\"><div class=\"fa_$1 fa fa-spinner\">&nbsp;</div><div class=\"text_$1\">$2");
 
             var transformer = new MDwiki.Markdown.Markdown(markdown, options);
             var html = transformer.transform();
